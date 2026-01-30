@@ -27,6 +27,8 @@ public class ParametresEnvironnement
 public class ParametresPatient
 {
     public string CoteNeglige { get; set; } = "gauche"; // gauche/droite
+    //public string ModeleMain { get; set; } = "auto";
+    public string TeintModeleMain { get; set; } = "auto";
     public int ChampVision { get; set; } = 180; // 180/160/140
     public int NiveauDifficulte { get; set; } = 1; // 1..5
     public int NiveauAssistance { get; set; } = 1; // 1..5

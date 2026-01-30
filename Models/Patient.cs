@@ -7,6 +7,7 @@ public class Patient
     public string Identifiant { get; set; } = string.Empty;
     public string Prenom { get; set; } = string.Empty;
     public int Age { get; set; }
+    public string Sexe { get; set; } = string.Empty;
     public string Pathologie { get; set; } = string.Empty;
     public string CoteNeglige { get; set; } = "gauche"; // gauche/droite
     public DateTime DateCreation { get; set; } = DateTime.UtcNow;
