@@ -1,0 +1,86 @@
+[
+  {
+    "SchemaVersion": 1, // version du schéma des données
+    "Identifiant": "patient-001", // identifiant unique du patient
+    "Nom": "Dupont", // nom de famille
+    "Prenom": "Jean", // prénom
+    "Age": 62, // âge en années
+    "Sexe": "M", // sexe (M/F)
+    "Pathologie": "Héminégligence", // pathologie principale
+    "CoteNeglige": "gauche", // côté négligé (gauche/droite)
+    "DateCreation": "2026-01-30T10:00:00Z", // date de création du patient
+    "Experiences": [ // liste des environnements/expériences disponibles
+      {
+        "IdEnvironnement": "env-forest", // identifiant de l'environnement
+        "Type": "ouvert", // type d'environnement (ouvert/ferme)
+        "Positions": [ // objets/positions à trouver dans l'environnement
+          {
+            "IdPosition": "pos-001", // identifiant de l'objet/position
+            "DureeCumulee": 12.5, // temps total passé sur cet objet (s)
+            "DerniereUtilisation": "2026-01-30T10:05:00Z", // dernière utilisation
+            "EtapeEnCours": 2, // étape actuelle
+            "EtapesReussies": [1, 2], // étapes réussies
+            "Description": "Cible au centre gauche", // description textuelle
+            "Coordinates": { "x": -0.4, "y": 1.2, "z": 2.0 }, // position 3D (m)
+            "DifficulteParPositionDepart": { "assise-centre": 2, "debout-droite": 4, "assise-gauche": 1 } // difficulté 1..5 selon position de départ
+          },
+          {
+            "IdPosition": "pos-002", // identifiant deuxième objet
+            "DureeCumulee": 8.0, // durée cumulée (s)
+            "DerniereUtilisation": "2026-01-30T10:04:00Z", // dernière utilisation
+            "EtapeEnCours": 1, // étape courante
+            "EtapesReussies": [1], // étapes réussies
+            "Description": "Cible en haut à droite", // description
+            "Coordinates": { "x": 0.8, "y": 1.6, "z": 1.5 }, // coordonnées 3D
+            "DifficulteParPositionDepart": { "assise-centre": 3, "debout-droite": 2, "assise-gauche": 4 } // mapping difficulté par position départ
+          }
+        ],
+        "StartPositions": ["assise-centre", "debout-droite", "assise-gauche"], // positions de départ possibles
+        "Difficultes": {
+          "facile": { "NombreObjets": 3, "NiveauAssistance": 3, "TempsLimiteSeconds": 0, "Description": "Facile : plus d'aides" }, // preset facile
+          "moyen": { "NombreObjets": 5, "NiveauAssistance": 2, "TempsLimiteSeconds": 0, "Description": "Moyen : configuration standard" }, // preset moyen
+          "difficile": { "NombreObjets": 7, "NiveauAssistance": 1, "TempsLimiteSeconds": 0, "Description": "Difficile : moins d'aides" } // preset difficile
+        }
+      }
+    ],
+    "Sessions": [ // historique des sessions
+      {
+        "IdSession": "sess-0001", // identifiant session
+        "DateDebut": "2026-01-30T10:00:00Z", // début session
+        "DateFin": "2026-01-30T10:10:30Z", // fin session
+        "IdConfiguration": "conf-default", // config utilisée
+        "IdSuperviseur": "pro-01", // identifiant du professionnel
+        "EnvironnementUtilise": "env-forest", // environnement de la session
+        "PositionDepart": "assise-centre", // position de départ choisie
+        "NiveauAssistance": 2, // niveau d'assistance appliqué
+        "PresetName": "moyen", // preset de difficulté utilisé pour générer la session
+        "NombreObjetsSelected": 2, // nombre d'objets sélectionnés pour la session
+        "TargetPositionIds": [ "pos-001", "pos-002" ], // liste des ids d'objets cibles sélectionnés
+        "Resultats": {
+          "ScoreTotal": 120, // score total obtenu
+          "TempsTotal": 630, // temps total mesuré (s)
+          "ObjectifsAtteints": 8, // objectifs atteints
+          "ObjectifsManques": 2, // objectifs manqués
+          "Metriques": [
+            {
+              "TempsReaction": 1.2, // temps de réaction moyen (s)
+              "PrecisionPointage": 0.85, // précision du pointage
+              "NombreIndices": 2, // nombre d'indices utilisés
+              "ZonesRegardees": ["centre", "gauche"], // zones regardées
+              "Commentaire": "Réaction correcte mais tendance à négliger l'extrême gauche" // commentaire
+            }
+          ]
+        }
+      }
+    ],
+    "Observations": [ // observations cliniques
+      {
+        "DateObservation": "2026-01-30T10:12:00Z", // date observation
+        "IdentifiantProfessionnel": "pro-01", // id professionnel
+        "RoleProfessionnel": "ergothérapeute", // rôle
+        "Commentaire": "Patient a bien répondu aux indices sonores.", // commentaire qualitatif
+        "SuiviPatient": "Recommander exercices centrés sur la partie gauche" // plan de suivi
+      }
+    ]
+  }
+]

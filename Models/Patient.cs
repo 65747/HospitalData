@@ -5,6 +5,7 @@ public class Patient
 {
     public int SchemaVersion { get; set; } = 1;
     public string Identifiant { get; set; } = string.Empty;
+    public string Nom { get; set; } = string.Empty;
     public string Prenom { get; set; } = string.Empty;
     public int Age { get; set; }
     public string Sexe { get; set; } = string.Empty;
@@ -12,7 +13,11 @@ public class Patient
     public string CoteNeglige { get; set; } = "gauche"; // gauche/droite
     public DateTime DateCreation { get; set; } = DateTime.UtcNow;
 
+    // Historique et relations
     public List<Experience> Experiences { get; set; } = new();
     public List<Session> Sessions { get; set; } = new();
     public List<Observation> Observations { get; set; } = new();
+
+    // Méthodes utilitaires
+    public int NombreSessions => Sessions?.Count ?? 0;
 }
