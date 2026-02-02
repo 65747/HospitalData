@@ -1,0 +1,26 @@
+[
+  {
+    "Sessions": [
+      {
+        "IDpatient": "patient-001",
+        "EnvironnementUtilise": "env-forest",
+        "PositionDepart": "assise-centre",
+        "DateDebut": "2026-01-30T10:00:00Z",
+        
+        "niveauDifficulte": "moyen",
+        "NiveauAssistance_moyen": 2,
+        "ObjectifsAtteints": 80%,
+        "ObjectifsManques": 20%,
+        "duree": 630,
+
+        "ScoreTotal": 120,
+
+        "IdSuperviseur": "pro-01",
+        "TempsReaction": 1.2,
+        "PrecisionPointage": 0.85,      
+        "Commentaire": "Patient a bien répondu aux indices sonores."
+      }
+    ]
+    
+  }
+]

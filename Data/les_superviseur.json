@@ -1,0 +1,8 @@
+[
+  {
+    "IdSuperviseur": "patient-001",
+    "Nom": "Dupont",
+    "Prenom": "Jean",
+    "fonction": "Patient"
+  }
+]

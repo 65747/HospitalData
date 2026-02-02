@@ -1,0 +1,13 @@
+[
+  {
+    "IDpatient": "patient-001",
+    "Nom": "Dupont",
+    "Prenom": "Jean",
+    "date_de_naissance": 1980,
+    "Sexe": "M",
+    "Pathologie": "Héminégligence",
+    "CoteNeglige": "gauche",
+    "DateCreation": "2026-01-30T10:00:00Z",
+    "SuiviPatient": "Recommander exercices centrés sur la partie gauche"
+  }
+]
