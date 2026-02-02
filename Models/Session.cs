@@ -1,29 +1,22 @@
-
 namespace Hospital.Data.Models;
 
 public class Session
 {
-    public string IdSession { get; set; } = string.Empty;
-    public DateTime DateDebut { get; set; }
-    public DateTime DateFin { get; set; }
-
-    // Référence à la configuration utilisée
-    public string IdConfiguration { get; set; } = string.Empty;
-
-    // Métadonnées de session
-    public string IdSuperviseur { get; set; } = string.Empty;
+    public string IDpatient { get; set; } = string.Empty;
     public string EnvironnementUtilise { get; set; } = string.Empty;
     public string PositionDepart { get; set; } = string.Empty;
-    public double DureeSeconds => (DateFin - DateDebut).TotalSeconds;
-    public int NiveauAssistance { get; set; } = 1; // 1..5
+    public DateTime DateDebut { get; set; }
 
-    // Résultats et progression
-    public Resultats? Resultats { get; set; }
+    public string niveauDifficulte { get; set; } = "moyen"; // facile/moyen/difficile
+    public int NiveauAssistance_moyen { get; set; } = 2;
+    public string ObjectifsAtteints { get; set; } = string.Empty; // e.g. "80%"
+    public string ObjectifsManques { get; set; } = string.Empty;  // e.g. "20%"
+    public double duree { get; set; } // seconds
 
-    // Identifiants des positions/objets sélectionnés pour cette session
-    public List<string> TargetPositionIds { get; set; } = new();
+    public int ScoreTotal { get; set; }
 
-    // Preset utilisé pour générer la session et nombre d'objets sélectionnés
-    public string? PresetName { get; set; }
-    public int NombreObjetsSelected { get; set; }
+    public string IdSuperviseur { get; set; } = string.Empty;
+    public double TempsReaction { get; set; }
+    public double PrecisionPointage { get; set; }
+    public string Commentaire { get; set; } = string.Empty;
 }
