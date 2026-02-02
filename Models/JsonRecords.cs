@@ -71,10 +71,10 @@ public class SessionJson
     public int NiveauAssistanceMoyen { get; set; }
 
     [JsonPropertyName("ObjectifsAtteints")]
-    public int ObjectifsAtteints { get; set; }
+    public string ObjectifsAtteints { get; set; } = string.Empty;
 
     [JsonPropertyName("ObjectifsManques")]
-    public int ObjectifsManques { get; set; }
+    public string ObjectifsManques { get; set; } = string.Empty;
 
     [JsonPropertyName("duree")]
     public int DureeSeconds { get; set; }
