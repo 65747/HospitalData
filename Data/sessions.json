@@ -9,8 +9,8 @@
         
         "niveauDifficulte": "moyen",
         "NiveauAssistance_moyen": 2,
-        "ObjectifsAtteints": 80%,
-        "ObjectifsManques": 20%,
+        "ObjectifsAtteints": 80,
+        "ObjectifsManques": 20,
         "duree": 630,
 
         "ScoreTotal": 120,

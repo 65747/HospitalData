@@ -1,11 +1,12 @@
 # HospitalData — Documentation et usage
 
-Ce README décrit la structure de données, les modèles C# et l'utilisation de la petite "base de données" JSON fournie dans ce projet.
+Ce README décrit la structure de données, les modèles C# et l'utilisation des fichiers JSON fournis dans ce projet.
 
 Chemins importants
 - Fichiers modèle : [Models](Models)
-- Stockage JSON d'exemple : [Data/patients.json](Data/patients.json)
-- Gestionnaire de stockage : [Storage/PatientDatabase.cs](Storage/PatientDatabase.cs)
+- Stockage JSON d'exemple : [Data/les_patients.json](Data/les_patients.json), [Data/les_superviseur.json](Data/les_superviseur.json), [Data/sessions.json](Data/sessions.json)
+- Gestionnaires JSON simples : [Storage/PatientsManager.cs](Storage/PatientsManager.cs), [Storage/SuperviseursManager.cs](Storage/SuperviseursManager.cs), [Storage/SessionsManager.cs](Storage/SessionsManager.cs)
+- Gestionnaire historique (modèle riche `Patient`) : [Storage/PatientDatabase.cs](Storage/PatientDatabase.cs)
 
 Résumé du projet
 L'application sert à conserver localement des données patients pour des exercices VR/RA de rééducation (héminégligence, hémiplégie). Les données sont sérialisées en JSON (local) et contiennent : informations patient, expériences/environnements, objets à trouver (positions), sessions et observations cliniques.
@@ -35,10 +36,88 @@ Principaux modèles (fichiers)
 
 - `Resultats`, `Metrique`, `Observation`, `Configuration` : voir les fichiers sous `Models` pour détails supplémentaires.
 
+## Modèles alignés sur les fichiers JSON actuels
+- `PatientJson`, `SuperviseurJson`, `SessionJson` sont dans [Models/JsonRecords.cs](Models/JsonRecords.cs) et correspondent 1:1 aux fichiers du dossier Data (noms de propriétés conservés).
+- L'enveloppe `SessionEnvelope` permet de lire le format actuel de [Data/sessions.json](Data/sessions.json) (`[{ "Sessions": [...] }]`).
+
+## Nouveaux manageurs JSON prêts à l'emploi
+Ces classes offrent un accès simple lecture/écriture aux trois fichiers JSON (verrouillage thread-safe, chargement lazy, écriture indentée) :
+- Patients : [Storage/PatientsManager.cs](Storage/PatientsManager.cs)
+- Superviseurs : [Storage/SuperviseursManager.cs](Storage/SuperviseursManager.cs)
+- Sessions : [Storage/SessionsManager.cs](Storage/SessionsManager.cs)
+
+### Exemples rapides
+
+Afficher la liste des patients, ajouter un patient, mettre à jour le suivi :
+
+```csharp
+using Hospital.Data.Storage;
+
+var patients = new PatientsManager();
+
+// Lire tout
+foreach (var p in patients.GetAll())
+  Console.WriteLine($"{p.IdPatient} - {p.Prenom} {p.Nom}");
+
+// Ajouter
+patients.Add(new PatientJson
+{
+  Nom = "Doe",
+  Prenom = "Jane",
+  AnneeNaissance = 1990,
+  Sexe = "F",
+  Pathologie = "Héminégligence",
+  CoteNeglige = "gauche"
+});
+
+// Modifier le suivi
+patients.UpdateSuivi("patient-001", "Poursuivre les exercices côté gauche");
+```
+
+Afficher les superviseurs et en ajouter :
+
+```csharp
+var superviseurs = new SuperviseursManager();
+foreach (var s in superviseurs.GetAll())
+  Console.WriteLine($"{s.IdSuperviseur} - {s.Prenom} {s.Nom} ({s.Fonction})");
+
+superviseurs.Add(new SuperviseurJson { Nom = "Martin", Prenom = "Lou", Fonction = "docteur" });
+```
+
+Afficher les sessions d'un patient donné :
+
+```csharp
+var sessions = new SessionsManager(patients, superviseurs);
+var sessionsPatient = sessions.GetByPatient("patient-001");
+foreach (var s in sessionsPatient)
+  Console.WriteLine($"{s.DateDebut:yyyy-MM-dd HH:mm} - {s.EnvironnementUtilise} - Score {s.ScoreTotal}");
+```
+
+Ajouter une session (avec validation des IDs patient/superviseur si les manageurs sont fournis au constructeur) :
+
+```csharp
+sessions.Add(new SessionJson
+{
+  IdPatient = "patient-001",
+  IdSuperviseur = "pro-01",
+  EnvironnementUtilise = "env-forest",
+  PositionDepart = "assise-centre",
+  DateDebut = DateTime.UtcNow,
+  NiveauDifficulte = "moyen",
+  NiveauAssistanceMoyen = 2,
+  ObjectifsAtteints = 80,
+  ObjectifsManques = 20,
+  DureeSeconds = 630,
+  ScoreTotal = 120,
+  TempsReaction = 1.2,
+  PrecisionPointage = 0.85,
+  Commentaire = "Patient a bien répondu aux indices sonores."
+});
+```
+
 Format JSON et commentaires
-- Le fichier exemple `Data/patients.json` est utilisé comme base de données locale.
-- Il contient désormais des commentaires inline (`//`) pour l'explication. Le parseur JSON utilisé dans `PatientDatabase.Load()` a `ReadCommentHandling = JsonCommentHandling.Skip`, donc les commentaires sont ignorés pendant la désérialisation.
-- Si vous avez besoin d'un JSON strict sans commentaires, supprimez les `//` et le fichier restera compatible.
+- Les fichiers de démonstration du dossier Data sont lus en tolérant les commentaires et les virgules traînantes.
+- `SessionsManager` lit le format enveloppé actuel (`[{ "Sessions": [...] }]`) et écrit au même format.
 
 Usage basique (C#)
 1) Charger la base et lister les patients :
