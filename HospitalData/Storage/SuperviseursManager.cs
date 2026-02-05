@@ -2,24 +2,26 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using Hospital.Data.Models;
+using Newtonsoft.Json;
 
-namespace Hospital.Data.Storage;
-
+namespace Hospital.Data.Storage
+{
 // Gestion simple du fichier Data/les_superviseur.json avec verrouillage lecture/écriture.
 public class SuperviseursManager
 {
     private readonly string _path;
     private readonly ReaderWriterLockSlim _lock = new(LockRecursionPolicy.SupportsRecursion);
-    private readonly JsonSerializerOptions _readOptions = new()
+    private static readonly JsonSerializerSettings ReadSettings = new()
     {
-        PropertyNameCaseInsensitive = true,
-        AllowTrailingCommas = true,
-        ReadCommentHandling = JsonCommentHandling.Skip
+        NullValueHandling = NullValueHandling.Ignore
     };
-    private readonly JsonSerializerOptions _writeOptions = new() { WriteIndented = true };
+    private static readonly JsonSerializerSettings WriteSettings = new()
+    {
+        Formatting = Formatting.Indented,
+        NullValueHandling = NullValueHandling.Ignore
+    };
 
     private bool _loaded;
     private List<SuperviseurJson> _superviseurs = new();
@@ -130,14 +132,15 @@ public class SuperviseursManager
         }
 
         var json = File.ReadAllText(_path);
-        _superviseurs = JsonSerializer.Deserialize<List<SuperviseurJson>>(json, _readOptions) ?? new List<SuperviseurJson>();
+        _superviseurs = JsonConvert.DeserializeObject<List<SuperviseurJson>>(json, ReadSettings) ?? new List<SuperviseurJson>();
     }
 
     private void PersistUnsafe()
     {
         var dir = Path.GetDirectoryName(_path);
         if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
-        var json = JsonSerializer.Serialize(_superviseurs, _writeOptions);
+        var json = JsonConvert.SerializeObject(_superviseurs, WriteSettings);
         File.WriteAllText(_path, json);
     }
+}
 }

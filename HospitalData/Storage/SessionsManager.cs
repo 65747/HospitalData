@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using Hospital.Data.Models;
+using Newtonsoft.Json;
 
-namespace Hospital.Data.Storage;
-
+namespace Hospital.Data.Storage
+{
 // Gestion simple du fichier Data/sessions.json (format enveloppé) avec validation optionnelle
 // des références patients/superviseurs et verrouillage lecture/écriture.
 public class SessionsManager
@@ -16,13 +16,15 @@ public class SessionsManager
     private readonly PatientsManager? _patients;
     private readonly SuperviseursManager? _superviseurs;
     private readonly ReaderWriterLockSlim _lock = new(LockRecursionPolicy.SupportsRecursion);
-    private readonly JsonSerializerOptions _readOptions = new()
+    private static readonly JsonSerializerSettings ReadSettings = new()
     {
-        PropertyNameCaseInsensitive = true,
-        AllowTrailingCommas = true,
-        ReadCommentHandling = JsonCommentHandling.Skip
+        NullValueHandling = NullValueHandling.Ignore
     };
-    private readonly JsonSerializerOptions _writeOptions = new() { WriteIndented = true };
+    private static readonly JsonSerializerSettings WriteSettings = new()
+    {
+        Formatting = Formatting.Indented,
+        NullValueHandling = NullValueHandling.Ignore
+    };
 
     private bool _loaded;
     private List<SessionJson> _sessions = new();
@@ -54,7 +56,7 @@ public class SessionsManager
     {
         EnsureLoaded();
         _lock.EnterReadLock();
-        try { return _sessions.Where(s => string.Equals(s.IdPatient, idPatient, StringComparison.OrdinalIgnoreCase)).ToList(); }
+        try { return _sessions.Where(s => string.Equals(s.IDpatient, idPatient, StringComparison.OrdinalIgnoreCase)).ToList(); }
         finally { _lock.ExitReadLock(); }
     }
 
@@ -68,7 +70,7 @@ public class SessionsManager
             EnsureLoadedUnsafe();
             ValidateReferences(session);
             session.DateDebut = Normalize(session.DateDebut);
-            if (session.DureeSeconds == 0 && session.DateDebut != default) session.DureeSeconds = 0;
+            if (session.duree == 0 && session.DateDebut != default) session.duree = 0;
             _sessions.Add(session);
             PersistUnsafe();
             return session;
@@ -84,7 +86,7 @@ public class SessionsManager
         try
         {
             EnsureLoadedUnsafe();
-            var index = _sessions.FindIndex(s => string.Equals(s.IdPatient, session.IdPatient, StringComparison.OrdinalIgnoreCase) && s.DateDebut == session.DateDebut);
+            var index = _sessions.FindIndex(s => string.Equals(s.IDpatient, session.IDpatient, StringComparison.OrdinalIgnoreCase) && s.DateDebut == session.DateDebut);
             if (index < 0) return false;
 
             ValidateReferences(session);
@@ -103,7 +105,7 @@ public class SessionsManager
         try
         {
             EnsureLoadedUnsafe();
-            var removed = _sessions.RemoveAll(s => string.Equals(s.IdPatient, idPatient, StringComparison.OrdinalIgnoreCase) && s.DateDebut == dateDebut) > 0;
+            var removed = _sessions.RemoveAll(s => string.Equals(s.IDpatient, idPatient, StringComparison.OrdinalIgnoreCase) && s.DateDebut == dateDebut) > 0;
             if (removed) PersistUnsafe();
             return removed;
         }
@@ -113,8 +115,8 @@ public class SessionsManager
     // Vérifie que patient et superviseur existent si les manageurs ont été fournis.
     private void ValidateReferences(SessionJson session)
     {
-        if (_patients != null && _patients.GetById(session.IdPatient) == null)
-            throw new InvalidOperationException($"Patient '{session.IdPatient}' introuvable.");
+        if (_patients != null && _patients.GetById(session.IDpatient) == null)
+            throw new InvalidOperationException($"Patient '{session.IDpatient}' introuvable.");
         if (_superviseurs != null && !string.IsNullOrWhiteSpace(session.IdSuperviseur) && _superviseurs.GetById(session.IdSuperviseur) == null)
             throw new InvalidOperationException($"Superviseur '{session.IdSuperviseur}' introuvable.");
     }
@@ -151,7 +153,7 @@ public class SessionsManager
         var json = File.ReadAllText(_path);
 
         // Cas le plus courant : tableau avec un objet {"Sessions": [...]}
-        var envelopeList = JsonSerializer.Deserialize<List<SessionEnvelope>>(json, _readOptions);
+        var envelopeList = JsonConvert.DeserializeObject<List<SessionEnvelope>>(json, ReadSettings);
         if (envelopeList != null && envelopeList.Count > 0)
         {
             _sessions = envelopeList.Where(e => e?.Sessions != null).SelectMany(e => e!.Sessions!).ToList();
@@ -159,7 +161,7 @@ public class SessionsManager
         }
 
         // Fallback : un seul objet {"Sessions": [...]}
-        var envelope = JsonSerializer.Deserialize<SessionEnvelope>(json, _readOptions);
+        var envelope = JsonConvert.DeserializeObject<SessionEnvelope>(json, ReadSettings);
         _sessions = envelope?.Sessions ?? new List<SessionJson>();
     }
 
@@ -168,7 +170,7 @@ public class SessionsManager
         var dir = Path.GetDirectoryName(_path);
         if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
         var payload = new List<SessionEnvelope> { new() { Sessions = _sessions } };
-        var json = JsonSerializer.Serialize(payload, _writeOptions);
+        var json = JsonConvert.SerializeObject(payload, WriteSettings);
         File.WriteAllText(_path, json);
     }
 
@@ -178,4 +180,5 @@ public class SessionsManager
         if (value.Kind == DateTimeKind.Unspecified) return DateTime.SpecifyKind(value, DateTimeKind.Utc);
         return value.ToUniversalTime();
     }
+}
 }
