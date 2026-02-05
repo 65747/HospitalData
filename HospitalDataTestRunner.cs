@@ -4,17 +4,14 @@ using Hospital.Data.Models;
 
 namespace Hospital.Data.Unity
 {
-    /// <summary>
-    /// Привяжи этот скрипт к любому GameObject в сцене (например, пустой объект "DatabaseTester").
-    /// При запуске (Play) загрузит данные из менеджеров и выведет всё в консоль Unity.
-    /// JSON-файлы должны лежать в StreamingAssets (или в подпапке, указанной в Data Folder).
-    /// </summary>
+    // Attacher ce script à un GameObject dans la scène (ex. objet vide "DatabaseTester").
+    // Au Play, charge les données via les manageurs et affiche tout dans la console Unity.
     public class HospitalDataTestRunner : MonoBehaviour
     {
-        [Tooltip("Подпапка внутри Assets/HospitalData/. Пусто = StreamingAssets (где лежат JSON в проекте). Можно указать Data.")]
+        [Tooltip("Sous-dossier dans Assets/HospitalData/. Vide = StreamingAssets. On peut indiquer Data.")]
         [SerializeField] string dataFolder = "";
 
-        [Tooltip("Писать ли подробный вывод по каждому полю.")]
+        [Tooltip("Afficher le détail de chaque champ.")]
         [SerializeField] bool verbose = true;
 
         void Start()
@@ -22,27 +19,26 @@ namespace Hospital.Data.Unity
             RunAllTests();
         }
 
-        [ContextMenu("Run database tests")]
+        [ContextMenu("Lancer les tests base de données")]
         public void RunAllTests()
         {
-            // Проект: Assets/HospitalData/StreamingAssets/ и Assets/HospitalData/Data/
-            string sub = string.IsNullOrEmpty(dataFolder) ? "StreamingAssets" : dataFolder.Trim('/', '\\');
-            string basePath = System.IO.Path.Combine(Application.dataPath, "HospitalData", sub);
-
+            var data = HospitalDataService.Instance;
             Debug.Log("[HospitalData] ========== TEST START ==========");
-            Debug.Log($"[HospitalData] Base path: {basePath}");
+            Debug.Log($"[HospitalData] Base path: {data.BasePath}");
 
-            TestPatients(basePath);
-            TestSuperviseurs(basePath);
-            TestSessions(basePath);
+            TestPatients(data);
+            TestSuperviseurs(data);
+            TestSessions(data);
+            TestAddPatients(data);
+            TestAddSuperviseurs(data);
+            TestAddSessions(data);
 
             Debug.Log("[HospitalData] ========== TEST END ==========");
         }
 
-        void TestPatients(string basePath)
+        void TestPatients(HospitalDataService data)
         {
-            string path = System.IO.Path.Combine(basePath, "les_patients.json");
-            var manager = new PatientsManager(path);
+            var manager = data.Patients;
 
             var all = manager.GetAll();
             Debug.Log($"[HospitalData] Patients: loaded {all.Count}");
@@ -63,10 +59,9 @@ namespace Hospital.Data.Unity
             }
         }
 
-        void TestSuperviseurs(string basePath)
+        void TestSuperviseurs(HospitalDataService data)
         {
-            string path = System.IO.Path.Combine(basePath, "les_superviseur.json");
-            var manager = new SuperviseursManager(path);
+            var manager = data.Superviseurs;
 
             var all = manager.GetAll();
             Debug.Log($"[HospitalData] Superviseurs: loaded {all.Count}");
@@ -87,10 +82,9 @@ namespace Hospital.Data.Unity
             }
         }
 
-        void TestSessions(string basePath)
+        void TestSessions(HospitalDataService data)
         {
-            string path = System.IO.Path.Combine(basePath, "sessions.json");
-            var manager = new SessionsManager(path);
+            var manager = data.Sessions;
 
             var all = manager.GetAll();
             Debug.Log($"[HospitalData] Sessions: loaded {all.Count}");
@@ -109,6 +103,94 @@ namespace Hospital.Data.Unity
                 var byPatient = manager.GetByPatient(firstPatient);
                 Debug.Log($"[HospitalData] GetByPatient('{firstPatient}') => {byPatient.Count} session(s)");
             }
+        }
+
+        void TestAddPatients(HospitalDataService data)
+        {
+            var manager = data.Patients;
+            int countBefore = manager.GetAll().Count;
+
+            var added = new PatientJson
+            {
+                IDpatient = "",
+                Nom = "TestAdd",
+                Prenom = "Patient",
+                date_de_naissance = 1990,
+                Sexe = "M",
+                Pathologie = "Test",
+                CoteNeglige = "droit",
+                SuiviPatient = "Test Add"
+            };
+            var result = manager.Add(added);
+            int countAfter = manager.GetAll().Count;
+
+            bool ok = countAfter == countBefore + 1 && !string.IsNullOrEmpty(result.IDpatient) && manager.GetById(result.IDpatient) != null;
+            Debug.Log(ok
+                ? $"[HospitalData] Add Patient OK: id={result.IDpatient}, count {countBefore} -> {countAfter}"
+                : $"[HospitalData] Add Patient FAIL: count {countBefore} -> {countAfter}");
+
+            if (ok) manager.Remove(result.IDpatient);
+        }
+
+        void TestAddSuperviseurs(HospitalDataService data)
+        {
+            var manager = data.Superviseurs;
+            int countBefore = manager.GetAll().Count;
+
+            var added = new SuperviseurJson
+            {
+                IdSuperviseur = "",
+                Nom = "TestAdd",
+                Prenom = "Superviseur",
+                fonction = "Test"
+            };
+            var result = manager.Add(added);
+            int countAfter = manager.GetAll().Count;
+
+            bool ok = countAfter == countBefore + 1 && !string.IsNullOrEmpty(result.IdSuperviseur) && manager.GetById(result.IdSuperviseur) != null;
+            Debug.Log(ok
+                ? $"[HospitalData] Add Superviseur OK: id={result.IdSuperviseur}, count {countBefore} -> {countAfter}"
+                : $"[HospitalData] Add Superviseur FAIL: count {countBefore} -> {countAfter}");
+
+            if (ok) manager.Remove(result.IdSuperviseur);
+        }
+
+        void TestAddSessions(HospitalDataService data)
+        {
+            var manager = data.Sessions;
+            var patients = data.Patients;
+            var patient = patients.GetAll().Count > 0 ? patients.GetAll()[0] : null;
+            if (patient == null)
+            {
+                Debug.Log("[HospitalData] Add Session SKIP: aucun patient");
+                return;
+            }
+
+            int countBefore = manager.GetAll().Count;
+            var added = new SessionJson
+            {
+                IDpatient = patient.IDpatient,
+                EnvironnementUtilise = "Test",
+                PositionDepart = "assis",
+                DateDebut = System.DateTime.UtcNow,
+                niveauDifficulte = "facile",
+                NiveauAssistance_moyen = 0,
+                ObjectifsAtteints = "oui",
+                ObjectifsManques = "non",
+                duree = 60,
+                ScoreTotal = 100,
+                IdSuperviseur = "",
+                Commentaire = "Test Add Session"
+            };
+            var result = manager.Add(added);
+            int countAfter = manager.GetAll().Count;
+
+            bool ok = countAfter == countBefore + 1 && manager.GetByPatient(added.IDpatient).Count >= 1;
+            Debug.Log(ok
+                ? $"[HospitalData] Add Session OK: patient={result.IDpatient}, count {countBefore} -> {countAfter}"
+                : $"[HospitalData] Add Session FAIL: count {countBefore} -> {countAfter}");
+
+            if (ok) manager.Remove(added.IDpatient, added.DateDebut);
         }
     }
 }
