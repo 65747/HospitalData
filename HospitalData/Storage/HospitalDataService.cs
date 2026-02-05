@@ -24,8 +24,19 @@ namespace Hospital.Data.Storage
         // Chemin du dossier contenant les JSON (pour débogage ou chemin personnalisé).
         public string BasePath => _basePath;
 
-        // Manageur des patients (les_patients.json).
-        public PatientsManager Patients => _patients ??= new PatientsManager(Path.Combine(_basePath, "les_patients.json"));
+        // Manageur des patients (les_patients.json). À la première utilisation, on s'abonne pour supprimer ses sessions quand un patient est supprimé.
+        public PatientsManager Patients
+        {
+            get
+            {
+                if (_patients == null)
+                {
+                    _patients = new PatientsManager(Path.Combine(_basePath, "les_patients.json"));
+                    _patients.AfterPatientRemoved += id => Sessions.RemoveAllByPatient(id);
+                }
+                return _patients;
+            }
+        }
 
         // Manageur des superviseurs (les_superviseur.json).
         public SuperviseursManager Superviseurs => _superviseurs ??= new SuperviseursManager(Path.Combine(_basePath, "les_superviseur.json"));

@@ -26,6 +26,9 @@ public class PatientsManager
     private bool _loaded;
     private List<PatientJson> _patients = new();
 
+    // Déclenché après suppression d'un patient (pour supprimer ses sessions côté service).
+    public event Action<string> AfterPatientRemoved;
+
     // path peut être redéfini pour les tests ou un autre dossier.
     public PatientsManager(string path = "Data/les_patients.json")
     {
@@ -38,16 +41,6 @@ public class PatientsManager
         EnsureLoaded();
         _lock.EnterReadLock();
         try { return _patients.ToList(); }
-        finally { _lock.ExitReadLock(); }
-    }
-
-    // Recherche par ID (case-insensitive).
-    public PatientJson? GetById(string id)
-    {
-        if (string.IsNullOrWhiteSpace(id)) return null;
-        EnsureLoaded();
-        _lock.EnterReadLock();
-        try { return _patients.FirstOrDefault(p => string.Equals(p.IDpatient, id, StringComparison.OrdinalIgnoreCase)); }
         finally { _lock.ExitReadLock(); }
     }
 
@@ -114,7 +107,11 @@ public class PatientsManager
         {
             EnsureLoadedUnsafe();
             var removed = _patients.RemoveAll(p => string.Equals(p.IDpatient, idPatient, StringComparison.OrdinalIgnoreCase)) > 0;
-            if (removed) PersistUnsafe();
+            if (removed)
+            {
+                PersistUnsafe();
+                AfterPatientRemoved?.Invoke(idPatient);
+            }
             return removed;
         }
         finally { _lock.ExitWriteLock(); }

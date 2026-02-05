@@ -41,16 +41,6 @@ public class SuperviseursManager
         finally { _lock.ExitReadLock(); }
     }
 
-    // Recherche par ID (case-insensitive).
-    public SuperviseurJson? GetById(string id)
-    {
-        if (string.IsNullOrWhiteSpace(id)) return null;
-        EnsureLoaded();
-        _lock.EnterReadLock();
-        try { return _superviseurs.FirstOrDefault(s => string.Equals(s.IdSuperviseur, id, StringComparison.OrdinalIgnoreCase)); }
-        finally { _lock.ExitReadLock(); }
-    }
-
     // Ajoute un superviseur et génère un ID si manquant.
     public SuperviseurJson Add(SuperviseurJson superviseur)
     {

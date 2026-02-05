@@ -50,13 +50,6 @@ namespace Hospital.Data.Unity
                 else
                     Debug.Log($"[HospitalData]   Patient: {p.IDpatient} - {p.Prenom} {p.Nom}");
             }
-
-            if (all.Count > 0)
-            {
-                var firstId = all[0].IDpatient;
-                var byId = manager.GetById(firstId);
-                Debug.Log(byId != null ? $"[HospitalData] GetById('{firstId}') OK" : $"[HospitalData] GetById('{firstId}') FAIL");
-            }
         }
 
         void TestSuperviseurs(HospitalDataService data)
@@ -72,13 +65,6 @@ namespace Hospital.Data.Unity
                     Debug.Log($"[HospitalData]   Superviseur: Id={s.IdSuperviseur}, Nom={s.Nom}, Prenom={s.Prenom}, Fonction={s.fonction}");
                 else
                     Debug.Log($"[HospitalData]   Superviseur: {s.IdSuperviseur} - {s.Prenom} {s.Nom} ({s.fonction})");
-            }
-
-            if (all.Count > 0)
-            {
-                var firstId = all[0].IdSuperviseur;
-                var byId = manager.GetById(firstId);
-                Debug.Log(byId != null ? $"[HospitalData] GetById('{firstId}') OK" : $"[HospitalData] GetById('{firstId}') FAIL");
             }
         }
 
@@ -124,7 +110,7 @@ namespace Hospital.Data.Unity
             var result = manager.Add(added);
             int countAfter = manager.GetAll().Count;
 
-            bool ok = countAfter == countBefore + 1 && !string.IsNullOrEmpty(result.IDpatient) && manager.GetById(result.IDpatient) != null;
+            bool ok = countAfter == countBefore + 1 && !string.IsNullOrEmpty(result.IDpatient);
             Debug.Log(ok
                 ? $"[HospitalData] Add Patient OK: id={result.IDpatient}, count {countBefore} -> {countAfter} (ajouté dans les_patients.json)"
                 : $"[HospitalData] Add Patient FAIL: count {countBefore} -> {countAfter}");
@@ -145,7 +131,7 @@ namespace Hospital.Data.Unity
             var result = manager.Add(added);
             int countAfter = manager.GetAll().Count;
 
-            bool ok = countAfter == countBefore + 1 && !string.IsNullOrEmpty(result.IdSuperviseur) && manager.GetById(result.IdSuperviseur) != null;
+            bool ok = countAfter == countBefore + 1 && !string.IsNullOrEmpty(result.IdSuperviseur);
             Debug.Log(ok
                 ? $"[HospitalData] Add Superviseur OK: id={result.IdSuperviseur}, count {countBefore} -> {countAfter} (ajouté dans les_superviseur.json)"
                 : $"[HospitalData] Add Superviseur FAIL: count {countBefore} -> {countAfter}");

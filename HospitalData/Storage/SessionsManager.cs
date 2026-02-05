@@ -112,12 +112,27 @@ public class SessionsManager
         finally { _lock.ExitWriteLock(); }
     }
 
+    // Supprime toutes les sessions d'un patient (par son ID). Retourne le nombre de sessions supprimées.
+    public int RemoveAllByPatient(string idPatient)
+    {
+        if (string.IsNullOrWhiteSpace(idPatient)) return 0;
+        _lock.EnterWriteLock();
+        try
+        {
+            EnsureLoadedUnsafe();
+            int count = _sessions.RemoveAll(s => string.Equals(s.IDpatient, idPatient, StringComparison.OrdinalIgnoreCase));
+            if (count > 0) PersistUnsafe();
+            return count;
+        }
+        finally { _lock.ExitWriteLock(); }
+    }
+
     // Vérifie que patient et superviseur existent si les manageurs ont été fournis.
     private void ValidateReferences(SessionJson session)
     {
-        if (_patients != null && _patients.GetById(session.IDpatient) == null)
+        if (_patients != null && !_patients.GetAll().Any(p => string.Equals(p.IDpatient, session.IDpatient, StringComparison.OrdinalIgnoreCase)))
             throw new InvalidOperationException($"Patient '{session.IDpatient}' introuvable.");
-        if (_superviseurs != null && !string.IsNullOrWhiteSpace(session.IdSuperviseur) && _superviseurs.GetById(session.IdSuperviseur) == null)
+        if (_superviseurs != null && !string.IsNullOrWhiteSpace(session.IdSuperviseur) && !_superviseurs.GetAll().Any(s => string.Equals(s.IdSuperviseur, session.IdSuperviseur, StringComparison.OrdinalIgnoreCase)))
             throw new InvalidOperationException($"Superviseur '{session.IdSuperviseur}' introuvable.");
     }
 
