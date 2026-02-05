@@ -126,10 +126,8 @@ namespace Hospital.Data.Unity
 
             bool ok = countAfter == countBefore + 1 && !string.IsNullOrEmpty(result.IDpatient) && manager.GetById(result.IDpatient) != null;
             Debug.Log(ok
-                ? $"[HospitalData] Add Patient OK: id={result.IDpatient}, count {countBefore} -> {countAfter}"
+                ? $"[HospitalData] Add Patient OK: id={result.IDpatient}, count {countBefore} -> {countAfter} (ajouté dans les_patients.json)"
                 : $"[HospitalData] Add Patient FAIL: count {countBefore} -> {countAfter}");
-
-            if (ok) manager.Remove(result.IDpatient);
         }
 
         void TestAddSuperviseurs(HospitalDataService data)
@@ -149,10 +147,8 @@ namespace Hospital.Data.Unity
 
             bool ok = countAfter == countBefore + 1 && !string.IsNullOrEmpty(result.IdSuperviseur) && manager.GetById(result.IdSuperviseur) != null;
             Debug.Log(ok
-                ? $"[HospitalData] Add Superviseur OK: id={result.IdSuperviseur}, count {countBefore} -> {countAfter}"
+                ? $"[HospitalData] Add Superviseur OK: id={result.IdSuperviseur}, count {countBefore} -> {countAfter} (ajouté dans les_superviseur.json)"
                 : $"[HospitalData] Add Superviseur FAIL: count {countBefore} -> {countAfter}");
-
-            if (ok) manager.Remove(result.IdSuperviseur);
         }
 
         void TestAddSessions(HospitalDataService data)
@@ -187,10 +183,8 @@ namespace Hospital.Data.Unity
 
             bool ok = countAfter == countBefore + 1 && manager.GetByPatient(added.IDpatient).Count >= 1;
             Debug.Log(ok
-                ? $"[HospitalData] Add Session OK: patient={result.IDpatient}, count {countBefore} -> {countAfter}"
+                ? $"[HospitalData] Add Session OK: patient={result.IDpatient}, count {countBefore} -> {countAfter} (ajouté dans sessions.json)"
                 : $"[HospitalData] Add Session FAIL: count {countBefore} -> {countAfter}");
-
-            if (ok) manager.Remove(added.IDpatient, added.DateDebut);
         }
     }
 }
